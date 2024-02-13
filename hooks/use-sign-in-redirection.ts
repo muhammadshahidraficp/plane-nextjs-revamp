@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { useRouter } from "next/router";
+import { NextRouter } from "next/router"; // Import NextRouter type
 // hooks
 import { useUser } from "../hooks/store";
 // types
@@ -11,13 +11,11 @@ type UseSignInRedirectionProps = {
   handleRedirection: () => Promise<void>;
 };
 
-const useSignInRedirection = (): UseSignInRedirectionProps => {
+// Pass the router instance as a parameter
+const useSignInRedirection = (router: NextRouter): UseSignInRedirectionProps => {
   // states
   const [isRedirecting, setIsRedirecting] = useState(true);
   const [error, setError] = useState<any | null>(null);
-  // router
-  const router = useRouter();
-  const { next_path } = router.query;
   // mobx store
   const { fetchCurrentUser, fetchCurrentUserSettings } = useUser();
 
@@ -35,9 +33,10 @@ const useSignInRedirection = (): UseSignInRedirectionProps => {
           return;
         }
         // if next_path is provided, redirect the user to that url
-        if (next_path) {
-          if (isValidURL(next_path.toString())) {
-            router.push(next_path.toString());
+        const nextPath = router.query.next_path as string | undefined;
+        if (nextPath) {
+          if (isValidURL(nextPath)) {
+            router.push(nextPath);
             return;
           } else {
             router.push("/");
@@ -60,7 +59,7 @@ const useSignInRedirection = (): UseSignInRedirectionProps => {
         setError(error);
       }
     },
-    [fetchCurrentUserSettings, router, next_path]
+    [fetchCurrentUserSettings, router]
   );
 
   const updateUserInfo = useCallback(async () => {
